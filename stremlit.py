@@ -27,7 +27,7 @@ if st.button("Generate Reassignment Plan") and absent_teacher_names:
     # Filter absent teachers
     absent_teachers = [t for t in teachers if t["Teacher_Name"].strip() in absent_teacher_names]
 
-    # Skip first 3 teachers
+    # Skip first 3 teachers (seniors)
     excluded_seniors = [t["Teacher_Name"].strip() for t in teachers[:3]]
     available_teachers = [
         t for t in teachers
@@ -35,7 +35,7 @@ if st.button("Generate Reassignment Plan") and absent_teacher_names:
         and t["Teacher_Name"].strip() not in excluded_seniors
     ]
 
-    # Setup
+    # Setup for reassignment
     reassignment_plan = {}
     busy_teachers = {t["Teacher_Name"]: set() for t in teachers}
     workload = {t["Teacher_Name"]: 0 for t in available_teachers}
@@ -43,15 +43,15 @@ if st.button("Generate Reassignment Plan") and absent_teacher_names:
     # Reassign subjects
     for absent_teacher in absent_teachers:
         for period in [col for col in df.columns if col.startswith("Period")]:
-            subject = absent_teacher[period].strip()
-            if subject:
+            subject = absent_teacher.get(period, "").strip()  # Safely access and strip empty values
+            if subject:  # Only reassign if there is a subject
                 sorted_teachers = sorted(
                     available_teachers,
                     key=lambda t: workload[t["Teacher_Name"]]
                 )
                 for current_teacher in sorted_teachers:
                     name = current_teacher["Teacher_Name"]
-                    if not current_teacher[period].strip() and period not in busy_teachers[name]:
+                    if not current_teacher.get(period, "").strip() and period not in busy_teachers[name]:
                         current_teacher[period] = subject
                         busy_teachers[name].add(period)
                         workload[name] += 1
