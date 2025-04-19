@@ -40,30 +40,29 @@ if st.button("Generate Reassignment Plan") and absent_teacher_names:
     busy_teachers = {t["Teacher_Name"]: set() for t in teachers}
     workload = {t["Teacher_Name"]: 0 for t in available_teachers}
 
-   # Reassign subjects
-for absent_teacher in absent_teachers:
-    for period in [col for col in df.columns if col.startswith("Period")]:
-        subject = absent_teacher.get(period, "").strip()  # Safely access and strip empty values
-        if subject:  # Only reassign if there is a subject
-            sorted_teachers = sorted(
-                available_teachers,
-                key=lambda t: workload[t["Teacher_Name"]]
-            )
-            for current_teacher in sorted_teachers:
-                name = current_teacher["Teacher_Name"]
+    # Reassign subjects
+    for absent_teacher in absent_teachers:
+        for period in [col for col in df.columns if col.startswith("Period")]:
+            subject = absent_teacher.get(period, "").strip()  # Safely access and strip empty values
+            if subject:  # Only reassign if there is a subject
+                sorted_teachers = sorted(
+                    available_teachers,
+                    key=lambda t: workload[t["Teacher_Name"]]
+                )
+                for current_teacher in sorted_teachers:
+                    name = current_teacher["Teacher_Name"]
 
-                # Safely check if the period is empty and if the teacher is not busy
-                current_teacher_period = current_teacher.get(period, "")
-                if not current_teacher_period and period not in busy_teachers[name]:
-                    current_teacher[period] = subject
-                    busy_teachers[name].add(period)
-                    workload[name] += 1
-                    reassignment_plan[f"{absent_teacher['Teacher_Name']} - {period}"] = {
-                        "subject": subject,
-                        "reassigned_to": name
-                    }
-                    break
-
+                    # Safely check if the period is empty and if the teacher is not busy
+                    current_teacher_period = current_teacher.get(period, "")
+                    if not current_teacher_period and period not in busy_teachers[name]:
+                        current_teacher[period] = subject
+                        busy_teachers[name].add(period)
+                        workload[name] += 1
+                        reassignment_plan[f"{absent_teacher['Teacher_Name']} - {period}"] = {
+                            "subject": subject,
+                            "reassigned_to": name
+                        }
+                        break
 
     # --- Output ---
     st.subheader("✅ Reassignment Plan")
